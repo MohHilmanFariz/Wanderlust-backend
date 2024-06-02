@@ -1,0 +1,16 @@
+{
+  "name": "itinerary-app",
+  "version": "1.0.0",
+  "description": "A simple itinerary application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^6.5.1",
+    "dotenv": "^16.0.1",
+    "body-parser": "^1.20.0",
+    "morgan": "^1.10.0"
+  }
+}
