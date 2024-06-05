@@ -1,7 +1,25 @@
-const app = require('./app');
+require('dotenv').config();
+const Hapi = require('@hapi/hapi');
+const routes = require('./routes/itineraryRoutes');
 
-const PORT = process.env.PORT || 5000;
+const init = async () => {
+  // Create Hapi server
+  const server = Hapi.server({
+    port: process.env.PORT || 5000,
+    host: 'localhost',
+  });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  // Register routes
+  server.route(routes);
+
+  // Start the server
+  await server.start();
+  console.log(`Server running on ${server.info.uri}`);
+};
+
+process.on('unhandledRejection', (err) => {
+  console.log(err);
+  process.exit(1);
 });
+
+init();

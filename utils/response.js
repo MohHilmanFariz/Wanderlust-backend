@@ -1,13 +1,17 @@
-exports.successResponse = (res, statusCode, data) => {
-  res.status(statusCode).json({
-    success: true,
-    data: data,
-  });
+exports.successResponse = (h, statusCode, data) => {
+  return h
+    .response({
+      success: true,
+      data: data,
+    })
+    .code(statusCode);
 };
 
-exports.errorResponse = (res, statusCode, message) => {
-  res.status(statusCode).json({
-    success: false,
-    error: message,
-  });
+exports.errorResponse = (h, statusCode, message) => {
+  return h
+    .response({
+      success: false,
+      error: message,
+    })
+    .code(statusCode);
 };

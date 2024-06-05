@@ -1,63 +1,59 @@
-const Itinerary = require('../models/itinerary');
+const { db } = require('../config/firebase');
 const { successResponse, errorResponse } = require('../utils/response');
 
-exports.createItinerary = async (req, res) => {
+exports.createItinerary = async (req, h) => {
   try {
-    const { title, description, date, user } = req.body;
-    const newItinerary = new Itinerary({ title, description, date, user });
-    await newItinerary.save();
-    successResponse(res, 201, newItinerary);
+    const { title, description, date, user } = req.payload;
+    const newItinerary = { title, description, date, user };
+    const docRef = await db.collection('itineraries').add(newItinerary);
+    const doc = await docRef.get();
+    return successResponse(h, 201, { id: docRef.id, ...doc.data() });
   } catch (err) {
-    errorResponse(res, 500, err.message);
+    return errorResponse(h, 500, err.message);
   }
 };
 
-exports.getItineraries = async (req, res) => {
+exports.getItineraries = async (req, h) => {
   try {
-    const itineraries = await Itinerary.find();
-    successResponse(res, 200, itineraries);
+    const snapshot = await db.collection('itineraries').get();
+    const itineraries = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return successResponse(h, 200, itineraries);
   } catch (err) {
-    errorResponse(res, 500, err.message);
+    return errorResponse(h, 500, err.message);
   }
 };
 
-exports.getItinerary = async (req, res) => {
+exports.getItinerary = async (req, h) => {
   try {
-    const itinerary = await Itinerary.findById(req.params.id);
-    if (!itinerary) {
-      return errorResponse(res, 404, 'Itinerary not found');
+    const docRef = await db.collection('itineraries').doc(req.params.id).get();
+    if (!docRef.exists) {
+      return errorResponse(h, 404, 'Itinerary not found');
     }
-    successResponse(res, 200, itinerary);
+    return successResponse(h, 200, { id: docRef.id, ...docRef.data() });
   } catch (err) {
-    errorResponse(res, 500, err.message);
+    return errorResponse(h, 500, err.message);
   }
 };
 
-exports.updateItinerary = async (req, res) => {
+exports.updateItinerary = async (req, h) => {
   try {
-    const { title, description, date, user } = req.body;
-    const updatedItinerary = await Itinerary.findByIdAndUpdate(
-      req.params.id,
-      { title, description, date, user },
-      { new: true }
-    );
-    if (!updatedItinerary) {
-      return errorResponse(res, 404, 'Itinerary not found');
-    }
-    successResponse(res, 200, updatedItinerary);
+    const { title, description, date, user } = req.payload;
+    const updatedItinerary = { title, description, date, user };
+    const docRef = db.collection('itineraries').doc(req.params.id);
+    await docRef.update(updatedItinerary);
+    const updatedDoc = await docRef.get();
+    return successResponse(h, 200, { id: updatedDoc.id, ...updatedDoc.data() });
   } catch (err) {
-    errorResponse(res, 500, err.message);
+    return errorResponse(h, 500, err.message);
   }
 };
 
-exports.deleteItinerary = async (req, res) => {
+exports.deleteItinerary = async (req, h) => {
   try {
-    const deletedItinerary = await Itinerary.findByIdAndDelete(req.params.id);
-    if (!deletedItinerary) {
-      return errorResponse(res, 404, 'Itinerary not found');
-    }
-    successResponse(res, 200, 'Itinerary deleted');
+    const docRef = db.collection('itineraries').doc(req.params.id);
+    await docRef.delete();
+    return successResponse(h, 200, 'Itinerary deleted');
   } catch (err) {
-    errorResponse(res, 500, err.message);
+    return errorResponse(h, 500, err.message);
   }
 };
